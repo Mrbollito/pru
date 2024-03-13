@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Example</title>
+</head>
+<body>
+    <script>
+        // Primera solicitud para obtener los datos
+fetch('https://rastreo.resser.com/api/LastPositionOAuth?groupId=95386&timezone=-6', {
+  method: 'GET',
+  headers: {
+    'Authorization': 'Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IkJEMzA5NDY2RjkwOUQ1MUMwNUYzNjJEMjVCMzk1RTU1IiwidHlwIjoiYXQrand0In0.eyJuYmYiOjE3MTAzNTA5NDIsImV4cCI6MTcxMDM1NDU0MiwiaXNzIjoiaHR0cHM6Ly9zeW5jLWlkZW50aXR5LXVsdGltYXRlLmF6dXJld2Vic2l0ZXMubmV0IiwiYXVkIjoiU2VydmljZXNBUEkiLCJjbGllbnRfaWQiOiJzaWxpYW50Iiwic3ViIjoiODA4ODkiLCJhdXRoX3RpbWUiOjE3MTAzNTA5NDIsImlkcCI6ImxvY2FsIiwianRpIjoiQ0JGRkRCMkFFRUI2NDQ0NDJBMzcwQUVFODQ3NDJCRjgiLCJpYXQiOjE3MTAzNTA5NDIsInNjb3BlIjpbIm9wZW5pZCIsIlNlcnZpY2VzQVBJIl0sImFtciI6WyJwYXNzd29yZCJdfQ.G_qmq5JoXslOEqLR0N_opDbzmWJAiPiGNDJcr6rVRE_yRVQqtrmwZg7TVF6hcDIbEG6O_-n1ZW9RXegw5g4_JxvRDtdq4WgUih30KTX3YdohnZQuTiSo7iSBJU11hKhDgPKOtYSrHCQD4pKHazlaaERpHMgRGBXlOTfSr2uOYWZwiA88ZOQYqP_KdJ57i_Z5HiYmlQUl5g0tqVo1O6KKHVwchfFn3dIUXmpgk-gNrjbsGD9pbYpbZztSg6gZR_k-uKU82rigiFuu-5bDvAi9g45S3MFChWsqeqrj6eDkm0Osq7oZIdfEOwd7Ry-l5JeuNRSzpC6K42Vykx_O7_SXSQ'
+  }
+})
+.then(response => response.json())
+.then(data => {
+  // Obtener los datos necesarios de la respuesta
+  const positionData = data.items[0];
+  
+  // Segunda solicitud para enviar los datos al servidor destino
+  return fetch('http://gw.flespi.io:23035', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      ident: positionData.id,
+      'message.type': 'miercoles',
+      'driver.message': 'pruebas v3',
+      'position.longitude': positionData.longitude,
+      'position.latitude': positionData.latitude,
+      'position.satellites': positionData.satellite,
+      'position.speed': positionData.speed,
+      'can.engine.ignition.status': positionData.ignition,
+      'vehicle.mileage': positionData.odometer
+    })
+  });
+})
+.then(response => {
+  if (!response.ok) {
+    throw new Error('Error en la solicitud');
+  }
+  // Verificar si la respuesta está vacía
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    return response.json(); // Convertir la respuesta en JSON
+  } else {
+    throw new Error('La respuesta no es un JSON válido');
+  }
+})
+.then(data => console.log(data)) // Mostrar la respuesta en la consola
+.catch(error => console.error('Error:', error)); // Manejar errores
+
+    </script>    
+</body>
+</html>
